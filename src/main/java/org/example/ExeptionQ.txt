@@ -1,0 +1,47 @@
+- Что будет выведено в результате выполнения данной программы? Объясните почему.
+ public class Main {
+
+	public static void main(String[] args) {
+    	for (int i = 0; i < 2; i++) {
+        	try {
+            	new MyException();
+        	} catch (Throwable e) {
+            	System.out.println("e = " + e);
+            	if (e.getCause() instanceof MyException) {
+                	MyException ex = (MyException) e.getCause();
+                	System.out.println("e instanceof " + MyException.class.getName() + ", s = " + ex.get());
+            	}
+        	}
+    	}
+	}
+}
+
+class MyException extends RuntimeException {
+	private String s;
+
+	static {
+    	init();
+	}
+
+	public MyException() {
+    	s = "Hello";
+	}
+
+	private static void init() {
+    	throw new MyException();
+	}
+
+	public String get() {
+    	return s;
+	}
+}
+на сколько я понимаю первоначально JVM не загружает все классы в приложении во время компиляции, по этому при первой
+итерации она пытается создать объект класса и возникает ошибка инициализации статического поля:
+static {
+    	private static void init() {
+            	throw new MyException();
+        	}
+	}
+==>  ExceptionInInitializerError
+при второй итерации JVM уже знает что не может инициализировать класс MyException и не пытается сделать это второй раз,
+отсюда ошибка e = java.lang.NoClassDefFoundError: Could not initialize class MyException
